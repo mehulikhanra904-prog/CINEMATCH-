@@ -42,3 +42,17 @@ def test_unknown_title_raises(sample_catalog):
 def test_missing_file_raises(tmp_path):
     with pytest.raises(FileNotFoundError):
         MovieRecommender(tmp_path / "missing.csv")
+
+
+def test_free_text_vibe_search(sample_catalog):
+    model = MovieRecommender(sample_catalog)
+    result = model.recommend_by_query("astronauts exploring planets", n=2)
+    assert len(result) == 2
+    assert result.iloc[0]["title"] in {"Space Journey", "Planet Mission"}
+    assert result["similarity"].between(0, 1).all()
+
+
+def test_free_text_search_rejects_empty_query(sample_catalog):
+    model = MovieRecommender(sample_catalog)
+    with pytest.raises(ValueError, match="Please enter"):
+        model.recommend_by_query("   ")

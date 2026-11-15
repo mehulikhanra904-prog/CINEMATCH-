@@ -36,20 +36,33 @@ class MovieRecommender:
         self.similarity = cosine_similarity(self.matrix)
         self.indices = {title: i for i, title in enumerate(self.movies["title"])}
 
-    def recommend(self, title, n=5, genre=None, min_rating=None):
-        """Return up to n similar movies, optionally applying catalog filters."""
-        if title not in self.indices:
-            raise ValueError(f"Movie not found: {title}")
-        n = max(0, int(n))
-        idx = self.indices[title]
-        ranked = sorted(enumerate(self.similarity[idx]), key=lambda item: item[1], reverse=True)
-        ranked = [(i, score) for i, score in ranked if i != idx]
-
-        candidates = self.movies.iloc[[i for i, _ in ranked]].copy()
-        candidates["similarity"] = [float(score) for _, score in ranked]
+    def _filter_and_rank(self, candidates, n, genre=None, min_rating=None):
         if genre:
             candidates = candidates[candidates["genres"].str.contains(genre, case=False, na=False)]
         if min_rating is not None:
             ratings = pd.to_numeric(candidates["rating"], errors="coerce")
             candidates = candidates[ratings >= float(min_rating)]
-        return candidates.head(n).reset_index(drop=True)
+        return candidates.head(max(0, int(n))).reset_index(drop=True)
+
+    def recommend(self, title, n=5, genre=None, min_rating=None):
+        """Return movies similar to a catalog title, with optional filters."""
+        if title not in self.indices:
+            raise ValueError(f"Movie not found: {title}")
+        idx = self.indices[title]
+        ranked = sorted(enumerate(self.similarity[idx]), key=lambda item: item[1], reverse=True)
+        ranked = [(i, score) for i, score in ranked if i != idx]
+        candidates = self.movies.iloc[[i for i, _ in ranked]].copy()
+        candidates["similarity"] = [float(score) for _, score in ranked]
+        return self._filter_and_rank(candidates, n, genre, min_rating)
+
+    def recommend_by_query(self, query, n=5, genre=None, min_rating=None):
+        """Find catalog movies matching a free-text mood, theme, or plot request."""
+        query = str(query).strip()
+        if not query:
+            raise ValueError("Please enter a mood, theme, or description.")
+        query_vector = self.vectorizer.transform([query])
+        scores = cosine_similarity(query_vector, self.matrix).ravel()
+        ranked = sorted(enumerate(scores), key=lambda item: item[1], reverse=True)
+        candidates = self.movies.iloc[[i for i, _ in ranked]].copy()
+        candidates["similarity"] = [float(score) for _, score in ranked]
+        return self._filter_and_rank(candidates, n, genre, min_rating)

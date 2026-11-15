@@ -149,10 +149,49 @@ if st.button("✨ Recommend movies", use_container_width=True):
                     unsafe_allow_html=True,
                 )
 
+
+st.markdown('<div class="section-title">💭 Discover by mood or story</div>', unsafe_allow_html=True)
+st.caption("Describe what you feel like watching — no movie title required.")
+vibe_query = st.text_input(
+    "What are you in the mood for?",
+    placeholder="e.g. mind-bending sci-fi, emotional love story, funny family adventure…",
+    key="vibe_query",
+)
+vibe_cols = st.columns([1, 3])
+with vibe_cols[0]:
+    vibe_count = st.selectbox("Vibe results", [3, 5, 8], index=1, key="vibe_count")
+with vibe_cols[1]:
+    st.write("")
+    st.write("")
+    vibe_submit = st.button("Find my movie 🍿", key="vibe_submit")
+if vibe_submit:
+    if not vibe_query.strip():
+        st.warning("Describe a mood, theme, or story first.")
+    else:
+        vibe_results = model.recommend_by_query(vibe_query, n=vibe_count)
+        if vibe_results.empty or float(vibe_results["similarity"].max()) <= 0:
+            st.info("I couldn't find a strong match. Try describing a genre, theme, or plot in different words.")
+        else:
+            st.success("Here are the closest matches from the current catalog.")
+            vibe_cards = st.columns(min(5, len(vibe_results)))
+            for k, (_, movie) in enumerate(vibe_results.iterrows()):
+                with vibe_cards[k % len(vibe_cards)]:
+                    poster = str(movie.get("poster_url", "")).strip()
+                    if poster.startswith(("https://", "http://")):
+                        st.image(poster, use_container_width=True)
+                    else:
+                        st.markdown(f'<div class="poster">🍿<br>{html.escape(str(movie["title"]))}</div>', unsafe_allow_html=True)
+                    rating = pd.to_numeric(movie["rating"], errors="coerce")
+                    rating_text = f"⭐ {rating:.1f}/10" if pd.notna(rating) else "⭐ Not rated"
+                    st.markdown(
+                        f'<div class="card"><h4>{html.escape(str(movie["title"]))}</h4><div class="muted">{html.escape(str(movie["year"]))} · {html.escape(str(movie["genres"]))}</div><p class="rating">{rating_text}</p><div class="muted">Text match: {float(movie["similarity"]):.0%}</div></div>',
+                        unsafe_allow_html=True,
+                    )
+
 with st.expander("📚 How CineMatch works"):
     st.write(
         "Genres and plot summaries are cleaned and converted into TF-IDF features (including two-word phrases). "
         "Cosine similarity ranks movies by how close their content is to your selected film. "
-        "Watchlist is stored in this browser session; it is not an account or permanent database."
+        "You can also describe a mood or plot and rank films against that text. Watchlist is stored in this browser session; it is not an account or permanent database."
     )
 st.caption("CineMatch · Python · Pandas · Scikit-learn · Streamlit")
