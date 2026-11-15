@@ -68,7 +68,33 @@ python -m pytest -q
 5. Click **Deploy**. Streamlit installs dependencies from `requirements.txt`.
 6. Copy the app URL shown after the build finishes and add it to this README.
 
-The core app needs no secrets. Optional live TMDB discovery requires TMDB_ACCESS_TOKEN in Streamlit Secrets. Add it as `TMDB_ACCESS_TOKEN = "your_read_access_token"`. Never commit API credentials. TMDB attribution is shown in the app; review the TMDB API terms and attribution requirements before public or commercial use.
+The core app needs no secrets. To enable both optional integrations, add the following values in your Streamlit Community Cloud app's **Settings → Secrets**. Create your own credentials first; never paste them into GitHub or share them in chat.
+
+```toml
+TMDB_ACCESS_TOKEN = "your_tmdb_api_read_access_token"
+SUPABASE_URL = "https://your-project-ref.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_your_key"
+```
+
+**TMDB setup**
+1. Create/sign in to a TMDB account and open your account's API settings.
+2. Request API access if you have not already; copy the **API Read Access Token** (not your password).
+3. Put it in Streamlit Secrets as `TMDB_ACCESS_TOKEN`.
+
+**Supabase setup**
+1. Create a Supabase project.
+2. In **Settings → API Keys** (or the project's **Connect** dialog), copy the Project URL and **Publishable key**. The app also accepts the legacy `SUPABASE_ANON_KEY`, but prefer the publishable key. Never use a secret/service-role key in this app.
+3. Open **SQL Editor** in Supabase, paste the full contents of `supabase/schema.sql`, and run it. This creates the watchlist table, grants access to authenticated users, and enables row-level security.
+4. In Supabase **Authentication → Providers → Email**, keep email/password sign-in enabled. If email confirmation is enabled, new users must confirm their email before signing in.
+5. Add the URL and publishable key to Streamlit Secrets using the names shown above.
+
+**Apply the secrets and restart**
+1. Open the app's Streamlit Community Cloud dashboard.
+2. Open the app menu → **Settings** → **Secrets** (or **Edit secrets**).
+3. Paste the TOML block with your real values, save, then reboot/redeploy the app.
+4. Test TMDB live search and create a test CineMatch account; add/remove a movie and confirm it remains after signing out and back in.
+
+TMDB attribution is shown in the app. Review the TMDB API terms and attribution requirements before public or commercial use.
 
 To expand the local ML catalog, set `TMDB_ACCESS_TOKEN` in your terminal and run `python scripts/import_tmdb_catalog.py --pages 50` (up to roughly 1,000 popular titles). Back up `data/movies.csv` first; the script replaces that CSV with the downloaded catalog. Review TMDB's terms before redistributing imported data.
 
@@ -77,7 +103,7 @@ To expand the local ML catalog, set `TMDB_ACCESS_TOKEN` in your terminal and run
 - [x] Optional persistent, per-user watchlists using Supabase Auth and Row Level Security
 - [x] Optional TMDB live discovery, movie details, posters, and YouTube trailer links (requires API read access token)
 - [ ] Evaluate recommendations with precision/recall or ranking metrics
-- [ ] Add CI to run tests on each pull request
+- [x] Add CI to run tests on each pull request
 
 ## 👩‍💻 Author
 **Mehuli Khanra** · [GitHub](https://github.com/mehulikhanra904-prog)
