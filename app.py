@@ -43,6 +43,47 @@ except Exception as exc:
 df = model.movies.copy()
 st.session_state.setdefault("watchlist", [])
 
+# Optional persistent watchlist with per-user Supabase authentication.
+from watchlist_store import configured as watchlist_configured
+watchlist_user = None
+if watchlist_configured():
+    from watchlist_store import restore_session, sign_in, sign_up, save_session, load_watchlist
+    with st.sidebar:
+        st.subheader("🔐 Your account")
+        try:
+            watchlist_user = restore_session()
+        except Exception:
+            st.session_state.pop("supabase_session", None)
+            watchlist_user = None
+        if watchlist_user:
+            st.success(f"Signed in: {watchlist_user.email}")
+            if st.button("Sign out", key="watchlist_signout"):
+                st.session_state.pop("supabase_session", None)
+                st.session_state.pop("supabase_client", None)
+                st.rerun()
+            try:
+                st.session_state.watchlist = load_watchlist(str(watchlist_user.id))
+            except Exception as exc:
+                st.warning(f"Could not load your saved watchlist: {exc}")
+        else:
+            auth_mode = st.radio("Account action", ["Sign in", "Create account"], horizontal=True)
+            with st.form("watchlist_auth_form"):
+                email = st.text_input("Email")
+                password = st.text_input("Password", type="password")
+                auth_submit = st.form_submit_button(auth_mode)
+            if auth_submit:
+                try:
+                    response = sign_in(email, password) if auth_mode == "Sign in" else sign_up(email, password)
+                    if response.session:
+                        save_session(response.session)
+                        st.success("Account ready. Your watchlist is synced.")
+                        st.rerun()
+                    else:
+                        st.info("Check your email to confirm your account, then sign in.")
+                except Exception as exc:
+                    st.error(f"Authentication failed: {exc}")
+
+
 st.markdown(
     '<div class="hero"><h1>🎬 CineMatch</h1><p>Your next favorite film is one search away · Discover, compare, save.</p></div>',
     unsafe_allow_html=True,
@@ -108,8 +149,14 @@ else:
             if st.button("✓ Saved" if saved else "＋ Watchlist", key=f"watch_{i}_{title}", use_container_width=True):
                 if saved:
                     st.session_state.watchlist.remove(title)
+                    if watchlist_user:
+                        from watchlist_store import remove_movie
+                        remove_movie(str(watchlist_user.id), title)
                 else:
                     st.session_state.watchlist.append(title)
+                    if watchlist_user:
+                        from watchlist_store import add_movie
+                        add_movie(str(watchlist_user.id), title)
                 st.rerun()
 
 st.markdown("---")
