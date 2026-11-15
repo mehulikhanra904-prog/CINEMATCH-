@@ -7,7 +7,8 @@ def configured():
 
 def client() -> Client:
     if "supabase_client" not in st.session_state:
-        api_key = st.secrets.get("SUPABASE_PUBLISHABLE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")\n        st.session_state.supabase_client = create_client(st.secrets["SUPABASE_URL"], api_key)
+        api_key = st.secrets.get("SUPABASE_PUBLISHABLE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")
+        st.session_state.supabase_client = create_client(st.secrets["SUPABASE_URL"], api_key)
     return st.session_state.supabase_client
 
 def sign_in(email: str, password: str):
