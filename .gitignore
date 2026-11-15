@@ -1,1 +1,18 @@
-__pycache__/\n.venv/\nvenv/\n.streamlit/secrets.toml\n*.pyc\n
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+.venv-1/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
