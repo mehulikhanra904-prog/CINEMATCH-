@@ -74,7 +74,7 @@ To expand the local ML catalog, set `TMDB_ACCESS_TOKEN` in your terminal and run
 
 ## 🗺️ Roadmap
 - [ ] Expand catalog using a properly licensed dataset
-- [ ] Add persistent watchlists (database/authentication)
+- [x] Optional persistent, per-user watchlists using Supabase Auth and Row Level Security
 - [x] Optional TMDB live discovery, movie details, posters, and YouTube trailer links (requires API read access token)
 - [ ] Evaluate recommendations with precision/recall or ranking metrics
 - [ ] Add CI to run tests on each pull request
