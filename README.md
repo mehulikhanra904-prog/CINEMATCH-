@@ -1,44 +1,83 @@
-# 🎬 CineMatch — Movie Discovery & Recommendation System
+# 🎬 CineMatch — Movie Discovery & Recommendation
 
-A portfolio-ready starter app with a modern dark discovery interface, movie search, genre filtering, sorting, ratings, release years, poster URLs, and content-based recommendations.
+A clean, dark-themed movie discovery app with a content-based recommendation engine. Search the catalog, filter by genre, sort films, save a session watchlist, and discover movies similar to a favorite.
 
-## Features
-- Premium dark UI inspired by streaming catalogs (not affiliated with Netflix)
-- Movie catalog cards with poster images (when URL is available), year, genre, and rating
-- Search across titles, genres, and descriptions
-- Genre filter + Top rated / Newest / A–Z sorting
-- Content-based recommendations using TF-IDF + cosine similarity
-- Similarity score for each recommendation
+> **Demo catalog:** `data/movies.csv` is a small curated sample. Recommendations are content-based—not collaborative recommendations from user behavior.
 
-## Stack
-Python • Streamlit • Pandas • Scikit-learn
+## ✨ Features
+- Search movie titles, genres, and plot descriptions
+- Filter by genre; sort by rating, release year, or title
+- Movie cards with poster, genre, year, and rating (fallback when poster is missing)
+- Content-based recommendations with similarity percentages
+- Optional genre and minimum-rating filters for recommendations
+- Session watchlist (saved while the current Streamlit session remains active)
+- Responsive Streamlit layout and friendly empty/error states
+- Unit tests for recommendation behavior and error handling
 
-## Setup (Windows PowerShell)
+## 🧠 How recommendations work
+1. Combine each movie's genres and overview into a text feature.
+2. Convert text to TF-IDF vectors, including unigram and bigram features.
+3. Compare vectors using cosine similarity.
+4. Rank candidates and apply optional genre/rating filters.
+
+This is an explainable beginner-friendly ML baseline. Similarity scores measure textual similarity, **not** the probability that you will like a film.
+
+## 🧰 Tech stack
+Python · Streamlit · Pandas · scikit-learn · pytest
+
+## 📁 Project structure
+```
+CINEMATCH-/
+├── app.py
+├── recommender.py
+├── requirements.txt
+├── data/
+│   └── movies.csv
+└── tests/
+    └── test_recommender.py
+```
+
+## ▶️ Run locally (Windows PowerShell)
 ```powershell
-cd "C:\path\to\CineMatch_Complete"
+git clone https://github.com/mehulikhanra904-prog/CINEMATCH-.git
+cd CINEMATCH-
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m streamlit run app.py
 ```
-Open http://localhost:8501
+Open **http://localhost:8501**.
 
-## Dataset
-`data/movies.csv` is a small curated demo dataset. It includes title, genres, overview, year, rating, and poster_url. A few poster URLs are supplied as examples; blank poster URLs render a styled fallback. For a larger dataset, use a properly licensed source and verify image URLs/metadata.
-
-## GitHub
-```bash
-git init
-git add .
-git commit -m "Build CineMatch movie discovery and recommendation app"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/cinematch.git
-git push -u origin main
+If PowerShell blocks activation, run this in the current terminal:
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
 ```
 
-## Possible next features
-- TMDB API integration (API key and terms required)
-- Watchlist / favorites
-- User accounts
-- Recommendation evaluation and unit tests
-- Deploy to Streamlit Community Cloud
+## 🧪 Run tests
+```powershell
+python -m pytest -q
+```
+
+## ☁️ Deploy on Streamlit Community Cloud
+1. Open [Streamlit Community Cloud](https://share.streamlit.io/) and sign in with GitHub.
+2. Choose **Create app** → **Deploy a public app from GitHub**.
+3. Repository: `mehulikhanra904-prog/CINEMATCH-`
+4. Branch: `main` · Main file: `app.py`
+5. Click **Deploy**. Streamlit installs dependencies from `requirements.txt`.
+6. Copy the app URL shown after the build finishes and add it to this README.
+
+No API key or secrets are required for the current version.
+
+## 🗺️ Roadmap
+- [ ] Expand catalog using a properly licensed dataset
+- [ ] Add persistent watchlists (database/authentication)
+- [ ] Add TMDB metadata/posters with API key and terms compliance
+- [ ] Evaluate recommendations with precision/recall or ranking metrics
+- [ ] Add CI to run tests on each pull request
+
+## 👩‍💻 Author
+**Mehuli Khanra** · [GitHub](https://github.com/mehulikhanra904-prog)
+
+If you find this useful, consider starring the repository ⭐
