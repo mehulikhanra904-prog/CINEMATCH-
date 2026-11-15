@@ -3,11 +3,11 @@ import streamlit as st
 from supabase import Client, create_client
 
 def configured():
-    return bool(st.secrets.get("SUPABASE_URL") and st.secrets.get("SUPABASE_ANON_KEY"))
+    return bool(st.secrets.get("SUPABASE_URL") and (st.secrets.get("SUPABASE_PUBLISHABLE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")))
 
 def client() -> Client:
     if "supabase_client" not in st.session_state:
-        st.session_state.supabase_client = create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_ANON_KEY"])
+        api_key = st.secrets.get("SUPABASE_PUBLISHABLE_KEY") or st.secrets.get("SUPABASE_ANON_KEY")\n        st.session_state.supabase_client = create_client(st.secrets["SUPABASE_URL"], api_key)
     return st.session_state.supabase_client
 
 def sign_in(email: str, password: str):
