@@ -68,7 +68,9 @@ python -m pytest -q
 5. Click **Deploy**. Streamlit installs dependencies from `requirements.txt`.
 6. Copy the app URL shown after the build finishes and add it to this README.
 
-The core app needs no secrets. Optional live TMDB discovery requires TMDB_ACCESS_TOKEN in Streamlit Secrets. Add it as TMDB_ACCESS_TOKEN = your_read_access_token. Never commit API credentials. TMDB attribution is shown in the app; review the TMDB API terms and attribution requirements before public or commercial use.
+The core app needs no secrets. Optional live TMDB discovery requires TMDB_ACCESS_TOKEN in Streamlit Secrets. Add it as `TMDB_ACCESS_TOKEN = "your_read_access_token"`. Never commit API credentials. TMDB attribution is shown in the app; review the TMDB API terms and attribution requirements before public or commercial use.
+
+To expand the local ML catalog, set `TMDB_ACCESS_TOKEN` in your terminal and run `python scripts/import_tmdb_catalog.py --pages 50` (up to roughly 1,000 popular titles). Back up `data/movies.csv` first; the script replaces that CSV with the downloaded catalog. Review TMDB's terms before redistributing imported data.
 
 ## 🗺️ Roadmap
 - [ ] Expand catalog using a properly licensed dataset
