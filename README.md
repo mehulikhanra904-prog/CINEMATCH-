@@ -68,11 +68,11 @@ python -m pytest -q
 5. Click **Deploy**. Streamlit installs dependencies from `requirements.txt`.
 6. Copy the app URL shown after the build finishes and add it to this README.
 
-No API key or secrets are required for the current version.
+Optional persistent watchlists require a Supabase project. Add SUPABASE_URL and SUPABASE_ANON_KEY to Streamlit Secrets, then run `supabase/schema.sql` in the Supabase SQL Editor. Users can create accounts or sign in; database row-level security restricts each watchlist to its owner. The core app still works without Supabase.
 
 ## 🗺️ Roadmap
 - [ ] Expand catalog using a properly licensed dataset
-- [ ] Add persistent watchlists (database/authentication)
+- [x] Optional persistent, per-user watchlists using Supabase Auth and Row Level Security
 - [ ] Add TMDB metadata/posters with API key and terms compliance
 - [ ] Evaluate recommendations with precision/recall or ranking metrics
 - [ ] Add CI to run tests on each pull request
