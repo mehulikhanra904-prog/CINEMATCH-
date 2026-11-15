@@ -6,6 +6,7 @@ create table if not exists public.watchlist (
     primary key (user_id, movie_title)
 );
 alter table public.watchlist enable row level security;
+grant select, insert, update, delete on table public.watchlist to authenticated;
 drop policy if exists "Users can read their own watchlist" on public.watchlist;
 drop policy if exists "Users can add to their own watchlist" on public.watchlist;
 drop policy if exists "Users can remove from their own watchlist" on public.watchlist;
