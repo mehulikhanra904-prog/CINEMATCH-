@@ -188,6 +188,79 @@ if vibe_submit:
                         unsafe_allow_html=True,
                     )
 
+
+# Optional live catalog powered by TMDB. Existing features work without a key.
+st.markdown("---")
+st.markdown('<div class="section-title">🌍 Explore the live movie universe</div>', unsafe_allow_html=True)
+st.caption("Browse popular movies from The Movie Database (TMDB), search titles, and open movie details and trailers.")
+try:
+    tmdb_token = st.secrets.get("TMDB_ACCESS_TOKEN", None)
+except Exception:
+    tmdb_token = None
+if not tmdb_token:
+    import os
+    tmdb_token = os.getenv("TMDB_ACCESS_TOKEN")
+
+if not tmdb_token:
+    st.info("Live discovery is optional. Add TMDB_ACCESS_TOKEN to Streamlit Secrets to enable the live catalog. Existing CineMatch features continue to work without it.")
+else:
+    from tmdb_client import TMDBClient, TMDBError, poster_url, trailer_url
+    @st.cache_resource
+    def get_tmdb_client(token):
+        return TMDBClient(token)
+    tmdb = get_tmdb_client(tmdb_token)
+    live_query = st.text_input("Search the live TMDB catalog", placeholder="Search for a movie title…", key="tmdb_query")
+    live_page = st.number_input("Catalog page", min_value=1, max_value=500, value=1, step=1, key="tmdb_page")
+    try:
+        live_data = tmdb.search_movies(live_query, live_page) if live_query.strip() else tmdb.discover_movies(live_page)
+        live_movies = live_data.get("results", [])
+        st.caption(f"Page {live_data.get('page', live_page)} · {live_data.get('total_results', 0):,} matching movies")
+        if not live_movies:
+            st.info("No live catalog matches. Try a different title.")
+        else:
+            live_cols = st.columns(5)
+            for index, item in enumerate(live_movies[:20]):
+                with live_cols[index % 5]:
+                    image_url = poster_url(item.get("poster_path"))
+                    if image_url:
+                        st.image(image_url, use_container_width=True)
+                    else:
+                        st.markdown(f'<div class="poster">🎬<br>{html.escape(item.get("title", "Untitled"))}</div>', unsafe_allow_html=True)
+                    title = item.get("title", "Untitled")
+                    release = (item.get("release_date") or "Release date unavailable")[:4]
+                    vote = item.get("vote_average")
+                    vote_text = f"{float(vote):.1f}/10" if vote else "Not rated"
+                    st.markdown(f'<div class="card"><h4>{html.escape(title)}</h4><div class="muted">{release}</div><p class="rating">⭐ {vote_text}</p></div>', unsafe_allow_html=True)
+                    if st.button("Movie details", key=f"tmdb_details_{item['id']}", use_container_width=True):
+                        st.session_state["tmdb_selected_id"] = int(item["id"])
+        if st.session_state.get("tmdb_selected_id"):
+            details = tmdb.movie_details(st.session_state["tmdb_selected_id"])
+            st.markdown("### " + html.escape(details.get("title", "Movie details")))
+            detail_cols = st.columns([1, 2])
+            with detail_cols[0]:
+                detail_poster = poster_url(details.get("poster_path"))
+                if detail_poster:
+                    st.image(detail_poster, use_container_width=True)
+            with detail_cols[1]:
+                st.write(details.get("overview") or "No overview available.")
+                st.write(f"**Release:** {details.get('release_date') or 'N/A'}")
+                st.write(f"**Genres:** {', '.join(g['name'] for g in details.get('genres', [])) or 'N/A'}")
+                st.write(f"**Runtime:** {details.get('runtime') or 'N/A'} minutes")
+                trailer = trailer_url(details)
+                if trailer:
+                    st.link_button("▶ Watch trailer on YouTube", trailer)
+                else:
+                    st.caption("No YouTube trailer is currently listed for this title.")
+                st.link_button("View on TMDB", f"https://www.themoviedb.org/movie/{details['id']}")
+    except TMDBError as exc:
+        st.warning(str(exc))
+    except Exception as exc:
+        st.warning(f"Live movie details are temporarily unavailable: {exc}")
+
+with st.expander("TMDB credits and attribution"):
+    st.write("This product uses the TMDB API but is not endorsed or certified by TMDB. Movie metadata and images are provided by The Movie Database.")
+    st.link_button("The Movie Database", "https://www.themoviedb.org/")
+
 with st.expander("📚 How CineMatch works"):
     st.write(
         "Genres and plot summaries are cleaned and converted into TF-IDF features (including two-word phrases). "
